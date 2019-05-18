@@ -244,22 +244,26 @@ const getters = {
 };
 
 const actions = {
-    getConfig(context, section) {
+    async getConfig(context, section) {
         const { commit } = context;
-        return api.get('/config/' + (section || '')).then(res => {
-            if (section) {
-                const config = res.data;
-                commit(ADD_CONFIG, { section, config });
-                return config;
-            }
+        try {
+            return api.get('/config/' + (section || '')).then(res => {
+                if (section) {
+                    const config = res.data;
+                    commit(ADD_CONFIG, { section, config });
+                    return config;
+                }
 
-            const sections = res.data;
-            Object.keys(sections).forEach(section => {
-                const config = sections[section];
-                commit(ADD_CONFIG, { section, config });
+                const sections = res.data;
+                Object.keys(sections).forEach(section => {
+                    const config = sections[section];
+                    commit(ADD_CONFIG, { section, config });
+                });
+                return sections;
             });
-            return sections;
-        });
+        } catch (error) {
+            throw error;
+        }
     },
     setConfig(context, { section, config }) {
         if (section !== 'main') {
