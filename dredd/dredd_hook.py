@@ -40,6 +40,21 @@ def load_api_description(transactions):
         api_description = yaml.safe_load(stream)
 
 
+@hooks.before_all
+def put_series_delete_last(transactions):
+    """Put DELETE /api/v2/series/{id} last."""
+    example_series_slug = api_description['parameters']['series-id']['x-example']
+
+    def should_put_last(t):
+        return all((
+            t['request']['method'] == 'DELETE',
+            t['request']['uri'] == '/api/v2/series/' + example_series_slug,
+            t['expected']['statusCode'] in ('204', '409'),
+        ))
+
+    transactions.sort(key=should_put_last)
+
+
 @hooks.before_each
 def configure_transaction(transaction):
     """Configure request based on x- property values for each response code."""
